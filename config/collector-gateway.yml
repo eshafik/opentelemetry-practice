@@ -1,0 +1,39 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4319
+      grpc:
+        endpoint: 0.0.0.0:4320
+
+processors:
+  batch:
+    timeout: 1s
+  resource:
+    attributes:
+      - key: test.key
+        value: "gateway"
+        action: insert
+
+exporters:
+  logging:
+    loglevel: debug
+
+  otlp:
+    endpoint: jaeger:4317
+    insecure: true
+
+extensions:
+  health_check:
+  pprof:
+    endpoint: :1888
+  zpages:
+    endpoint: :55679
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [logging, otlp]
